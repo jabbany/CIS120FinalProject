@@ -1,0 +1,84 @@
+# Game Data File
+# All lines that start with #s are comments, blank lines are ignored
+# This file defines the game's levels and other stuff
+#
+# Pipe symbols are also treated as newline separators when partitioning data
+# just so it looks better
+#
+# I'm not a good level designer... Don't expect this to be too good
+#
+0:Tutorial Level
+
+# TYPE defines the type of playing field (currently only supports 0)
+# SIZE defines the max-size of the playing field 
+# START defines the starting position of the snake, from (0,0) to (w-1,h-1)
+TYPE:0
+SIZE:40,40
+START:19,19
+
+# Block Types : 
+# B - Block, cannot enter (x,y)
+# H - Hole, nothing here, cannot enter (x,y)
+# TUT - Tutorial tile, this invokes a tutorial dialog (xfrom,xto,yfrom,yto,dlgtext)
+# SUP - Speedup Cell (x,y)
+# SDN - Speeddown Cell (x,y)
+# PEL - Pellet (respawn,locations,x1,y1...xn,yn)
+# STP - Power Strip (length,x1,y1...xn,yn)
+# 
+# Note that the game loader does not check for errors! 
+# You must make sure the data file is correct
+# If coordinates are wrong or out of bounds, the game MAY FAIL UNEXPECTEDLY
+#
+
+# Left Wall
+B:24,16|B:24,17|B:24,18|B:24,19|B:24,20|B:24,21|B:24,22|B:24,23|B:24,24|B:24,25|
+B:24,26|B:24,27|B:24,28|B:24,29
+# Right Wall
+B:14,16|B:14,17|B:14,18|B:14,19|B:14,20|B:14,21|B:14,22|B:14,23|B:14,24|B:14,25|
+B:14,26|B:14,27|B:14,28|B:14,29
+B:14,30|B:14,31|B:14,32|B:14,33|B:14,34|B:14,35|B:14,36|B:14,37|
+# Back Wall
+B:15,16|B:16,16|B:17,16|B:18,16|B:19,16|B:20,16|B:21,16|B:22,16|B:23,16
+# Front Blocker
+B:15,37|B:16,37|B:17,37|B:18,37|B:19,37|B:20,37|B:21,37|B:22,37|B:23,37
+# Looping
+B:24,37|B:24,36|B:24,35|B:24,34|B:24,33|
+# Random bad stuff
+B:20,31|B:21,32
+# Side Blocker
+B:18,30|B:18,31|B:18,32|B:18,33|B:18,34
+
+# Smaller Opening
+B:23,29|B:22,29|B:21,29|B:20,29|B:19,29|B:18,29
+PEL:5,5,19,30,20,30,21,30,21,31,22,31
+PEL:20,5,23,28,20,19,17,26,21,17,27,8
+
+TUT:14,25,21,22,Use the left right arrow keys to control the snake and eat the yellow pellets. ^Be careful not to hit the walls.
+
+SUP:15,30|SUP:15,31|SUP:15,32|SUP:15,35|SUP:15,36
+SUP:16,30|SUP:16,31|SUP:16,32|SUP:16,35|SUP:16,36
+SUP:17,30|SUP:17,31|SUP:17,32|SUP:17,35|SUP:17,36
+SDN:15,33|SDN:16,33|SDN:17,33
+SDN:15,34|SDN:16,34|SDN:17,34
+TUT:14,19,29,30,Tiles marked with GREEN will speed up your snake...^While tiles marked with RED will slow it down.
+TUT:24,25,30,34,Power Up Strips are strips of blue squares. Finishing them will increase your score multiplier.^The entire strip only adds ONE length to the snake.
+
+# INVOKE: invokers define game logic, they are executed AFTER a REMOVE
+#  is sent to a tile (x,y) [eg, the item their being gone, or a tutorial
+#  dialog that has been triggered]
+# Syntax: 
+# INVOKE:type,count,x,y...
+# ... many lines of definitions as you normally would use...
+# INVOKE:END
+
+STP:5,26,31,27,31,28,31,29,31,29,30
+STP:5,29,28,29,27,29,26,29,25,29,24
+STP:5,29,21,29,20,29,19,29,18,29,17
+SDN:29,29
+TUT:29,30,29,30,The power strips and speedup/speeddown tiles will help guide your direction^throughout the game.
+SUP:29,23|SUP:29,22|SUP:29,21|SUP:29,20|SUP:29,19|SUP:29,18|SUP:29,17|SUP:29,16|SUP:29,15
+SUP:15,15|SUP:16,15|SUP:17,15|SUP:18,15|SUP:19,15|SUP:20,15|SUP:21,15|
+SUP:22,15|
+
+B:15,14|B:16,14|B:17,14|B:18,14|B:19,14|B:20,14|B:21,14|B:22,14|B:23,14|B:24,14
+B:29,14|B:30,14|B:30,15
