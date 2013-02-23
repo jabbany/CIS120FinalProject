@@ -72,5 +72,15 @@ public class TkButton implements TkComponent {
 	public int getHeight() {
 		return this.height;
 	}
+
+	@Override
+	public void dispatchEvent(TkEvent e) {
+		
+	}
+
+	@Override
+	public void addEventListener(String eventListener, TkEventListener listener) {
+		
+	}
 	
 }

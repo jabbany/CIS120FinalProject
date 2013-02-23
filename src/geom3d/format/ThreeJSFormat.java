@@ -23,11 +23,12 @@ public class ThreeJSFormat {
 	private ArrayList<Point3d> vertices = new ArrayList<Point3d>();
 	private ArrayList<Edge> edges = new ArrayList<Edge>();
 	private ArrayList<Face> faces = new ArrayList<Face>();
+
 	public ThreeJSFormat(String filename) {
 		try {
 			BufferedReader r = new BufferedReader(new FileReader(filename));
 			String s = r.readLine();
-			while(s != null){
+			while (s != null) {
 				s = r.readLine();
 			}
 			r.close();
@@ -45,8 +46,8 @@ public class ThreeJSFormat {
 	 * @return Model3d mesh model
 	 */
 	public Model3d toModel3d() {
-
-		return null;
+		return new Model3d(0, 0, 0, edges.toArray(new Edge[edges.size()]),
+				vertices.toArray(new Point3d[vertices.size()]));
 	}
 
 }

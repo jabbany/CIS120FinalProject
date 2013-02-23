@@ -4,7 +4,7 @@ import java.awt.Graphics;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-public class TkHGroup implements RenderElement, TkComponent {
+public class TkHGroup implements TkComponent {
 	private int x = 0, y = 0, width = 0, height = 0;
 	private LinkedList<TkComponent> components = new LinkedList<TkComponent>();
 	@Override
@@ -70,6 +70,16 @@ public class TkHGroup implements RenderElement, TkComponent {
 		while(iterator.hasNext()){
 			iterator.next().paint(g);
 		}
+	}
+
+	@Override
+	public void dispatchEvent(TkEvent e) {
+		
+	}
+
+	@Override
+	public void addEventListener(String eventListener, TkEventListener listener) {
+		
 	}
 
 }

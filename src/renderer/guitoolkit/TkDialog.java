@@ -2,10 +2,14 @@ package renderer.guitoolkit;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.util.ArrayList;
+
+import renderer.guitoolkit.TkEventListener;
 
 public class TkDialog implements TkComponent {
 	private int x = 0, y = 0, width = 0, height = 0;
 	private String text = "";
+	private ArrayList<TkEventListener> listeners = new ArrayList<TkEventListener>();
 	
 	public TkDialog(String text){
 		this.text = text;
@@ -37,8 +41,10 @@ public class TkDialog implements TkComponent {
 					defTy + i * 18);
 		}
 		String f = "(Press Any Key To Close)";
-		g.drawChars(f.toCharArray(), 0, f.length(), defTx + width / 2
-				- 90, defTy + height - 48);
+		int fw = 
+				g.getFontMetrics().charsWidth(
+						f.toCharArray(), 0, f.length());
+		g.drawChars(f.toCharArray(), 0, f.length(), (width - fw) / 2 + x, defTy + height - 48);
 	}
 
 	@Override
@@ -81,4 +87,18 @@ public class TkDialog implements TkComponent {
 		return height;
 	}
 
+	@Override
+	public void dispatchEvent(TkEvent event) {
+		if(event.getType() == "click"){
+			for(int i = 0; i < listeners.size(); i++){
+				listeners.get(i).onAction(event);
+			}
+		}
+	}
+
+	@Override
+	public void addEventListener(String listenerType, TkEventListener listener) {
+		if(listenerType == "click")
+			listeners.add(listener);
+	}
 }
