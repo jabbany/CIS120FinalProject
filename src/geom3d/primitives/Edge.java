@@ -6,6 +6,8 @@ public class Edge {
 	public int start;
 	public int end;
 	public Color color;
+	public boolean dep = false;
+	
 	public Edge(int startId, int endId, Color c){
 		start = startId;
 		end = endId;
@@ -13,9 +15,12 @@ public class Edge {
 	}
 	
 	public Edge(int startId, int endId){
-		start = startId;
-		end = endId;
-		color = Color.WHITE;
+		this(startId, endId, Color.WHITE);
+	}
+	
+	public Edge(int startId, int endId, boolean dep){
+		this(startId, endId);
+		this.dep = dep;
 	}
 	
 	public String toString(){

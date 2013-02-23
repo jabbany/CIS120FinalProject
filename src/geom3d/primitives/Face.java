@@ -39,4 +39,13 @@ public interface Face {
 	 * @return
 	 */
 	public Face cloneTo(int index);
+
+	/**
+	 * Gets the normal vector of the face
+	 * 
+	 * @return An array of 3 or 4 integers if returning 4 integers, the 4th is a
+	 *         precision integer where a positive value will signify expansion
+	 *         factor, and a negative one contraction factor
+	 */
+	public int[] getNormal();
 }

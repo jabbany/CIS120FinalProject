@@ -1,4 +1,5 @@
 package renderer;
+
 import geom3d.Model2d;
 import geom3d.primitives.Edge;
 import geom3d.primitives.Face;
@@ -37,13 +38,24 @@ public class Field3d extends Component implements MouseDragCatcher {
 	private Graphics buffer_context;
 	private Model2d context_2d;
 	private Field3dMouseHandler mouse_handler;
+
+	private static double DEG2RAD = Math.PI / 180.0;
 	
 	private int azimuth = 0, elevation = 130, rotz = 0;
+	private double[] viewport = new double[] { 1000.0, 0.0, 0.0 };
 	public int dx = 0, dy = 0;
 	private Color background = Color.BLACK;
 
 	private int cut(int a, int min, int max) {
 		return Math.min(Math.max(a, min), max);
+	}
+
+	private double dotProduct(double[] parr1, int[] parr2) {
+		double dotProd = 0;
+		for (int i = 0; i < 3; i++) {
+			dotProd += parr1[i] * parr2[i];
+		}
+		return dotProd;
 	}
 
 	public Field3d(RenderableField f) {
@@ -68,12 +80,13 @@ public class Field3d extends Component implements MouseDragCatcher {
 	public void set2dContext(Model2d model) {
 		context_2d = model;
 	}
-	
+
 	/**
 	 * Get the 2d graphics context of the 3d field
+	 * 
 	 * @return the drawable 2d context for this 2d field
 	 */
-	public Model2d get2dContext(){
+	public Model2d get2dContext() {
 		return context_2d;
 	}
 
@@ -110,31 +123,37 @@ public class Field3d extends Component implements MouseDragCatcher {
 		Point3d[] vertices = field.getVertices();
 		Face[] faces = field.getFaces();
 
-		double theta = Math.PI * azimuth / 180.0;
-		double phi = Math.PI * elevation / 180.0;
+		double theta = DEG2RAD * azimuth;
+		double phi = DEG2RAD * elevation;
 		float cosT = (float) Math.cos(theta), sinT = (float) Math.sin(theta);
 		float cosP = (float) Math.cos(phi), sinP = (float) Math.sin(phi);
 		float cosTcosP = cosT * cosP, cosTsinP = cosT * sinP, sinTcosP = sinT
 				* cosP, sinTsinP = sinT * sinP;
-		Point[] points;
-		points = new Point[vertices.length];
+		
+		Point[] points = new Point[vertices.length];
+		boolean[] rPoint = new boolean[vertices.length];
 		int j;
 		int scaleFactor = width / 100;
 		float near = 100;
 		float nearToObj = 1.5f;
 		for (j = 0; j < points.length; ++j) {
+			// initialize all points as lazy render
+			rPoint[j] = false;
 			double[] p = vertices[j].getPrecision();
 			double x0 = p[0] + dx;
 			double y0 = p[1] + dy;
 			double z0 = p[2];
+			
 			// rotation of points in view
 			double xn = x0 * Math.cos(rotz * Math.PI / 180) - y0
 					* Math.sin(rotz * Math.PI / 180);
 			double yn = y0 * Math.cos(rotz * Math.PI / 180) + x0
 					* Math.sin(rotz * Math.PI / 180);
+			
 			// compute an orthographic projection
 			double x1 = cosT * xn + sinT * z0;
 			double y1 = -sinTsinP * xn + cosP * yn + cosTsinP * z0;
+			
 			// now adjust things to get a perspective projection
 			double z1 = cosTcosP * z0 - sinTcosP * xn - sinP * yn;
 
@@ -154,12 +173,17 @@ public class Field3d extends Component implements MouseDragCatcher {
 		/** NOTE: Points may be null! **/
 		/** TODO: Add BETTER support for faces **/
 		for (j = 0; j < field.countFaces(); ++j) {
+			// See if face needs to be rendered
+			if (faces[j].getNormal() != null
+					&& dotProduct(viewport, faces[j].getNormal()) >= 0)
+				continue; // Don't render this face
 			int[] facePoints = faces[j].getPoints();
 			int[] xpoints = new int[facePoints.length];
 			int[] ypoints = new int[facePoints.length];
 			int npoints = 0;
 			for (int x = 0; x < facePoints.length; x++) {
 				if (points[facePoints[x]] != null) {
+					rPoint[facePoints[x]] = true;
 					xpoints[npoints] = points[facePoints[x]].x;
 					ypoints[npoints] = points[facePoints[x]].y;
 					npoints++;
@@ -170,14 +194,23 @@ public class Field3d extends Component implements MouseDragCatcher {
 		}
 
 		for (j = 0; j < field.countEdges(); ++j) {
+			/** Do not draw a dependant edge of a face if the face was not drawn **/
+			if (edges[j].dep && !(rPoint[edges[j].start] && rPoint[edges[j].end]))
+				continue;
 			g.setColor(edges[j].color);
 			if (points[edges[j].start] != null && points[edges[j].end] != null)
 				g.drawLine(points[edges[j].start].x, points[edges[j].start].y,
 						points[edges[j].end].x, points[edges[j].end].y);
+			//char[] a = vertices[edges[j].end].toString().toCharArray();
+			//g.drawChars(a, 0, a.length, points[edges[j].end].x, points[edges[j].end].y);
 		}
 
 		/** Draws the models on top of the field **/
 		for (j = field.countFaces(); j < faces.length; ++j) {
+			if (faces[j].getNormal() != null
+					&& dotProduct(viewport, faces[j].getNormal()) >= 0){
+				continue; // Don't render this face
+			}
 			int[] facePoints = faces[j].getPoints();
 			int[] xpoints = new int[facePoints.length];
 			int[] ypoints = new int[facePoints.length];
@@ -194,12 +227,15 @@ public class Field3d extends Component implements MouseDragCatcher {
 		}
 
 		for (j = field.countEdges(); j < edges.length; ++j) {
+			if (edges[j].dep && !(rPoint[edges[j].start] && rPoint[edges[j].end]))
+				continue;
 			g.setColor(edges[j].color);
+			
 			if (points[edges[j].start] != null && points[edges[j].end] != null)
 				g.drawLine(points[edges[j].start].x, points[edges[j].start].y,
 						points[edges[j].end].x, points[edges[j].end].y);
 		}
-		
+
 		if (context_2d != null && !context_2d.standalone()) {
 			context_2d.paint(g);
 		}
@@ -237,6 +273,10 @@ public class Field3d extends Component implements MouseDragCatcher {
 		elevation += dy * 90 / 160;
 		rotz = rotz % 360;
 		elevation = cut(elevation, 100, 180);
+		// Recalculate the viewport
+		viewport[0] = -1000 * Math.cos((elevation - 90) * DEG2RAD) * Math.sin(rotz * DEG2RAD);
+		viewport[1] = -1000 * Math.cos((elevation - 90) * DEG2RAD) * Math.cos(rotz * DEG2RAD);
+		viewport[2] = -1000 * Math.sin((elevation - 90) * DEG2RAD);
 		if (buffer != null && buffer_context != null)
 			drawField(buffer_context);
 		repaint();

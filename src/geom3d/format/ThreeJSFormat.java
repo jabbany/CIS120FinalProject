@@ -24,6 +24,7 @@ import java.util.ArrayList;
 
 public class ThreeJSFormat {
 	private ArrayList<Point3d> vertices = new ArrayList<Point3d>();
+	private ArrayList<Point3d> normals = new ArrayList<Point3d>();
 	private ArrayList<Edge> edges = new ArrayList<Edge>();
 	private ArrayList<Face> faces = new ArrayList<Face>();
 
@@ -40,7 +41,65 @@ public class ThreeJSFormat {
 			return faces;
 		}
 	}
-
+	
+	private int[] combineNormals(int[] al){
+		int[] normal = new int[]{0,0,0};
+		for(int i = 0; i < al.length; i++){
+			Point3d p = normals.get(al[i]);
+			normal[0] += p.x;
+			normal[1] += p.y;
+			normal[2] += p.z;
+		}
+		return normal;
+	}
+	
+	private int faceNormal(int type){
+		int size = 0;
+		int edgeCount;
+		if (type % 2 == 0) {
+			edgeCount = 3;
+		} else {
+			edgeCount = 4;
+		}
+		size += edgeCount;
+		if ((type / 2) % 2 == 1)
+			size += 1; /* Material */
+		if ((type / 4) % 2 == 1)
+			size += 1; /* Face UV */
+		if ((type / 8) % 2 == 1)
+			size += edgeCount; /* Face Vertex UV */
+		if ((type / 16) % 2 == 1)
+			return size + 1; /* Face normal */
+		return -1;
+	}
+	
+	private int[] vertexNormal(int type){
+		int size = 0;
+		int edgeCount;
+		if (type % 2 == 0) {
+			edgeCount = 3;
+		} else {
+			edgeCount = 4;
+		}
+		size += edgeCount;
+		if ((type / 2) % 2 == 1)
+			size += 1; /* Material */
+		if ((type / 4) % 2 == 1)
+			size += 1; /* Face UV */
+		if ((type / 8) % 2 == 1)
+			size += edgeCount; /* Face Vertex UV */
+		if ((type / 16) % 2 == 1)
+			size += 1; /* Face normal */
+		if ((type / 32) % 2 == 1){
+			int[] vn = new int[edgeCount];
+			for(int j = 0; j < edgeCount; j++){
+				vn[j] = size + 1 + j;
+			}
+			return vn;
+		}
+		return null;
+	}
+	
 	/**
 	 * Finds how many indices to skip
 	 * 
@@ -91,12 +150,29 @@ public class ThreeJSFormat {
 							int b = Integer.parseInt(readin[ptr + 2]);
 							int c = Integer.parseInt(readin[ptr + 3]);
 							/* Triangle */
-							edges.add(new Edge(a, b));
-							edges.add(new Edge(b, c));
-							edges.add(new Edge(c, a));
+							edges.add(new Edge(a, b, true));
+							edges.add(new Edge(b, c, true));
+							edges.add(new Edge(c, a, true));
 							/* Add face */
-							faces.add(new FaceTri(a,b,c, Color.YELLOW));
-							
+							int fn = faceNormal(type);
+							int[] vn = vertexNormal(type);
+							if(fn > 0){
+								int[] normal = new int[3];
+								Point3d p = normals.get(Integer.parseInt(readin[ptr + fn]));
+								normal[0] = p.x;
+								normal[1] = p.y;
+								normal[2] = p.z;
+								faces.add(new FaceTri(a, b, c, normal, Color.YELLOW));
+							}else if(vn != null){
+								for(int i = 0; i < vn.length; i++){
+									vn[i] = Integer.parseInt(readin[ptr + vn[i]]);
+								}
+								int[] normal = combineNormals(vn);
+								faces.add(new FaceTri(a, b, c, normal, Color.YELLOW));
+							}else{
+								faces.add(new FaceTri(a, b, c, Color.YELLOW));
+							}
+
 							ptr += findSize(type);
 						} else {
 							/* Quad */
@@ -105,13 +181,30 @@ public class ThreeJSFormat {
 							int c = Integer.parseInt(readin[ptr + 3]);
 							int d = Integer.parseInt(readin[ptr + 4]);
 							/* Add Edges */
-							edges.add(new Edge(a, b));
-							edges.add(new Edge(b, c));
-							edges.add(new Edge(c, d));
-							edges.add(new Edge(d, a));
+							edges.add(new Edge(a, b, true));
+							edges.add(new Edge(b, c, true));
+							edges.add(new Edge(c, d, true));
+							edges.add(new Edge(d, a, true));
 							
 							/* Add face */
-							faces.add(new FaceQuad(a,b,c,d, Color.YELLOW));
+							int fn = faceNormal(type);
+							int[] vn = vertexNormal(type);
+							if(fn > 0){
+								int[] normal = new int[3];
+								Point3d p = normals.get(Integer.parseInt(readin[ptr + fn]));
+								normal[0] = p.x;
+								normal[1] = p.y;
+								normal[2] = p.z;
+								faces.add(new FaceQuad(a, b, c, d, normal, Color.YELLOW));
+							}else if(vn != null){
+								for(int i = 0; i < vn.length; i++){
+									vn[i] = Integer.parseInt(readin[ptr + vn[i]]);
+								}
+								int[] normal = combineNormals(vn);
+								faces.add(new FaceQuad(a, b, c, d, normal, Color.YELLOW));
+							}else{
+								faces.add(new FaceQuad(a, b, c, d, Color.YELLOW));
+							}
 							ptr += findSize(type);
 						}
 					}
@@ -124,10 +217,23 @@ public class ThreeJSFormat {
 						float y = Float.parseFloat(readin[3 * i + 1]);
 						float z = Float.parseFloat(readin[3 * i + 2]);
 						Point3d p = new Point3d((int) (x * 10000),
-								(int) (y * 10000), (int) (z * 10000), -10000);
+								(int) (y * 10000), (int) (z * 10000), -500);
 						vertices.add(p);
 					}
 				}
+					break;
+				case "normals": {
+					String[] readin = spl[1].split(",");
+					for (int i = 0; i < readin.length / 3; i++) {
+						float x = Float.parseFloat(readin[3 * i]);
+						float y = Float.parseFloat(readin[3 * i + 1]);
+						float z = Float.parseFloat(readin[3 * i + 2]);
+						Point3d p = new Point3d((int) (x * 10000),
+								(int) (y * 10000), (int) (z * 10000));
+						normals.add(p);
+					}
+				}
+					break;
 				default:
 					/** This is not supported by the renderer so meh **/
 				}
