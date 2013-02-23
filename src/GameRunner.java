@@ -19,6 +19,7 @@ import playground.snake.SnakeModel;
 import renderer.Field3d;
 import renderer.FieldData;
 import renderer.GameOverlay;
+import renderer.RenderableField;
 
 /**
  * Game Runner - this is where all the gaming logic is
@@ -35,7 +36,7 @@ public class GameRunner implements KeyListener {
 	private ArrayList<AnimatedItem> animated;
 	private GameMapData gameLevelData;
 	private GameMapLoader gameLoader;
-	
+
 	private int rotz;
 	private int snakeSpeed = 2;
 	private int currentTileType = 0;
@@ -44,15 +45,15 @@ public class GameRunner implements KeyListener {
 	private boolean autoTurn = true, tutorialMode = false;
 	// private PowerStrip runnngPowerStrip = null;
 
-	private int lives = 3, points = 0, multiplier = 1;
+	private int lives = 3, points = 0, multiplier = 1, level = 0;
 
-	public GameRunner(Field3d field) {
+	public GameRunner(Field3d field, RenderableField fieldData,
+			GameMapLoader map) {
 		this.rotz = 0;
 		this.field = field;
-		this.fieldData = field.getFieldData();
+		this.fieldData = (FieldData) fieldData;
 		this.animated = new ArrayList<AnimatedItem>();
-		this.gameLevelData = new GameMapData(0, "Test");
-		/** This is initting the GameLevelData **/
+		this.gameLoader = map;
 
 		this.gameOverlay = new GameOverlay();
 		field.set2dContext(this.gameOverlay);
@@ -76,14 +77,15 @@ public class GameRunner implements KeyListener {
 		/** Update display **/
 		onStatsChange();
 	}
-	
-	public void setGameMap(GameMapLoader loader){
+
+	public void setGameMap(GameMapLoader loader) {
 		this.gameLoader = loader;
 	}
-	
+
 	public void setGameLevel(int level) {
-		if(this.gameLoader != null)
-			gameLevelData = gameLoader.getLevel(level);
+		this.level = level;
+		if (this.gameLoader != null)
+			gameLevelData = gameLoader.getLevel(this.level);
 		else
 			gameLevelData = null;
 	}
@@ -95,7 +97,7 @@ public class GameRunner implements KeyListener {
 		this.fieldData.clear();
 		this.animated.clear();
 		if (gameLevelData == null) {
-			gameOverlay.displayDialog(10, 10, 620, 460,
+			gameOverlay.displayCenteredDialog(620, 460,
 					"[Error] Missing or illegal game data file.^"
 							+ "Please provide a correct gamedata.dat file!");
 			gameOverlay.setGameStats("");
@@ -141,16 +143,17 @@ public class GameRunner implements KeyListener {
 	 * Decreases life count and processes deaths
 	 */
 	public void decreaseLife() {
-		if(lives > 0){
+		if (lives > 0) {
 			multiplier = 1;
 			lives--;
 			onStatsChange();
-			if(lives == 0){
+			if (lives == 0) {
 				points = 0;
 				multiplier = 1;
-				gameOverlay.displayDialog(100, 200, 440, 80, "Oh dear, You Died. Press any key to Restart Level.");
+				gameOverlay.displayCenteredDialog(440, 80,
+						"Oh dear, You Died. Press any key to Restart Level.");
 			}
-			
+
 		}
 	}
 
@@ -161,11 +164,11 @@ public class GameRunner implements KeyListener {
 		lives++;
 		onStatsChange();
 	}
-	
-	public boolean isAlive(){
+
+	public boolean isAlive() {
 		return lives > 0;
 	}
-	
+
 	public void turnField() {
 		rotz = snake.facingRotZ();
 		if (rotz != field.getRotation()) {
@@ -300,7 +303,7 @@ public class GameRunner implements KeyListener {
 	public void tick() {
 		if (!this.fieldInited)
 			return;
-		
+
 		if (autoTurn)
 			turnField();
 
@@ -318,7 +321,7 @@ public class GameRunner implements KeyListener {
 		if (lastX != x || lastY != y) {
 			/** Decreases check load **/
 			hitTracker(x, y);
-			if(isAlive())
+			if (isAlive())
 				tileTracker(x, y);
 			lastX = x;
 			lastY = y;
@@ -374,9 +377,7 @@ public class GameRunner implements KeyListener {
 				autoTurn = !autoTurn;
 			} else if (k.getKeyCode() == KeyEvent.VK_H) {
 				gameOverlay
-						.displayDialog(
-								100,
-								80,
+						.displayCenteredDialog(
 								440,
 								320,
 								"Controls^"
@@ -399,7 +400,7 @@ public class GameRunner implements KeyListener {
 	public void keyReleased(KeyEvent k) {
 		if (!fieldInited)
 			return;
-		if (!isAlive()){
+		if (!isAlive()) {
 			this.lives = 3;
 			this.initField();
 			gameOverlay.clearLastDialog();

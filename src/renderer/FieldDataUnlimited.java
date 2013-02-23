@@ -62,5 +62,9 @@ public class FieldDataUnlimited implements RenderableField {
 	public void onRender() {
 		
 	}
-
+	
+	@Override
+	public void clear(){
+		
+	}
 }

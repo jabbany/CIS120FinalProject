@@ -63,4 +63,9 @@ public interface RenderableField {
 	 * This method is called each time a field has been completely rendered.
 	 */
 	public void onRender();
+	
+	/**
+	 * Clear all existing models and visual elements from the field.
+	 */
+	public void clear();
 }

@@ -8,10 +8,13 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 
 import renderer.guitoolkit.RenderElement;
+import renderer.guitoolkit.TkDialog;
 
 /**
  * This is the 2d game overlay used to display dialogs and other information
  * about the game.
+ * 
+ * This is a really basic gui toolkit built on top of 2d renderer
  * 
  * @author Jim
  * 
@@ -19,8 +22,9 @@ import renderer.guitoolkit.RenderElement;
 
 public class GameOverlay extends Model2d implements MouseClickCatcher {
 	private boolean standalone = false, showStats = true;
-	private LinkedList<RenderElement> drawingStack = new LinkedList<RenderElement>();
+	private LinkedList<RenderElement> drawingQueue = new LinkedList<RenderElement>();
 	private String gameStats = "";
+	private int width = 640, height = 480;
 	
 	public void setGameStats(String text) {
 		showStats = text.length() != 0;
@@ -31,38 +35,33 @@ public class GameOverlay extends Model2d implements MouseClickCatcher {
 		this.standalone = standalone;
 	}
 	
-	public void displayDialog(int x, int y, int w, int h, String content) {
-		final String c = content;
-		final int spx = x, spy = y, width = w, height = h;
-		drawingStack.add(new RenderElement() {
+	public void displayMenu(){
+		this.showStats = false;
+		
+		drawingQueue.add(new RenderElement(){
 			@Override
 			public void paint(Graphics g) {
-				g.setColor(Color.BLACK);
-				g.fillRect(spx, spy, width, height);
-				g.setColor(Color.WHITE);
-				g.drawRect(spx, spy, width, height);
-				g.drawRect(spx + 4, spy + 4, width - 8, height - 8);
-				int defTx = spx + 18, defTy = spy + 28;
-				String[] m = c.split("\\^");
-				for (int i = 0; i < m.length; i++) {
-					g.drawChars(m[i].toCharArray(), 0, m[i].length(), defTx,
-							defTy + i * 18);
-				}
-				String f = "(Press Any Key To Close)";
-				g.drawChars(f.toCharArray(), 0, f.length(), defTx + width / 2
-						- 90, defTy + height - 48);
+				
 			}
 		});
 	}
+	
+	public void displayDialog(int x, int y, int w, int h, String content) {
+		drawingQueue.add(new TkDialog(content, x, y, w, h));
+	}
+	
+	public void displayCenteredDialog(int w, int h, String content){
+		displayDialog((width - w)/2, (height - h)/2, w, h, content);
+	}
 
 	public void clearLastDialog() {
-		if (!drawingStack.isEmpty())
-			drawingStack.removeLast();
+		if (!drawingQueue.isEmpty())
+			drawingQueue.removeLast();
 	}
 
 	public void displayTutorial(String text) {
 		final String t = text;
-		drawingStack.add(new RenderElement() {
+		drawingQueue.add(new RenderElement() {
 			@Override
 			public void paint(Graphics g) {
 				g.setColor(Color.BLACK);
@@ -84,7 +83,7 @@ public class GameOverlay extends Model2d implements MouseClickCatcher {
 
 	@Override
 	public void paint(Graphics g) {
-		ListIterator<RenderElement> iterator = drawingStack.listIterator();
+		ListIterator<RenderElement> iterator = drawingQueue.listIterator();
 		while (iterator.hasNext()) {
 			iterator.next().paint(g);
 		}
