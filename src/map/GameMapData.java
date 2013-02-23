@@ -169,7 +169,11 @@ public class GameMapData {
 	@SuppressWarnings("unchecked")
 	public GameMapData clone(){
 		GameMapData gd = new GameMapData(type, name);
-		gd.cells = (ArrayList<GameMapDataCell>) this.cells.clone();
+		/** Deep Clones **/
+		gd.cells = new ArrayList<GameMapDataCell>();
+		for(int i = 0; i < this.cells.size(); i++){
+			gd.cells.add(this.cells.get(i).clone());
+		}
 		gd.invokers = (ArrayList<AbstractInvoker>) this.invokers.clone();
 		gd.sx = sx;
 		gd.sy = sy;

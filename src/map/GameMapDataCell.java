@@ -8,7 +8,7 @@ public class GameMapDataCell {
 	private AbstractGameItem data;
 	private int x = 0, y = 0;
 
-	public GameMapDataCell(int x, int y,int type, AbstractGameItem data) {
+	public GameMapDataCell(int x, int y, int type, AbstractGameItem data) {
 		this(x,y,type);
 		this.data = data;
 	}
@@ -39,5 +39,10 @@ public class GameMapDataCell {
 	public void setXY(int x, int y){
 		this.x = x;
 		this.y = y;
+	}
+	
+	public GameMapDataCell clone(){
+		GameMapDataCell newCell = new GameMapDataCell(x, y, type, data);
+		return newCell;
 	}
 }

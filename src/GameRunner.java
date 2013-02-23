@@ -94,6 +94,9 @@ public class GameRunner implements KeyListener {
 	 * Initialize the playing field
 	 */
 	public void initField() {
+		this.renderTimer.stop();
+		this.timer.stop();
+		this.setGameLevel(level);
 		this.fieldData.clear();
 		this.animated.clear();
 		if (gameLevelData == null) {
@@ -129,6 +132,8 @@ public class GameRunner implements KeyListener {
 		}
 		fieldInited = true;
 		onStatsChange();
+		this.renderTimer.start();
+		this.timer.start();
 	}
 
 	public void start() {

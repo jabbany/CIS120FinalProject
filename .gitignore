@@ -1,5 +1,6 @@
-# Ignore build folder
+# Ignore build and test folders
 bin/
+test/
 
 # Ignore Eclipse settings
 .settings/
