@@ -4,7 +4,10 @@ import geom3d.*;
 import geom3d.primitives.Edge;
 import geom3d.primitives.Face;
 import geom3d.primitives.Point3d;
+import geom3d.primitives.face.FaceQuad;
+import geom3d.primitives.face.FaceTri;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -23,31 +26,54 @@ public class ThreeJSFormat {
 	private ArrayList<Point3d> vertices = new ArrayList<Point3d>();
 	private ArrayList<Edge> edges = new ArrayList<Edge>();
 	private ArrayList<Face> faces = new ArrayList<Face>();
-	
+
+	private class FacesModel extends Model3d {
+		private Face[] faces;
+
+		public FacesModel(Edge[] edges, Point3d[] points, Face[] faces) {
+			super(edges, points);
+			this.faces = faces;
+		}
+
+		@Override
+		public Face[] getFaces() {
+			return faces;
+		}
+	}
+
 	/**
 	 * Finds how many indices to skip
-	 * @param type - Type of object
+	 * 
+	 * @param type
+	 *            - Type of object
 	 * @return Number of indices that the current object covers
 	 */
-	private int findSize(int type){
+	private int findSize(int type) {
 		int size = 1;
 		int edgeCount;
-		if(type % 2 == 0) {
+		if (type % 2 == 0) {
 			edgeCount = 3;
-		}else{ 
+		} else {
 			edgeCount = 4;
 		}
 		size += edgeCount;
-		if((type / 2) % 2 == 1) size += 1; /* Material */
-		if((type / 4) % 2 == 1) size += 1; /* Face UV */
-		if((type / 8) % 2 == 1) size += edgeCount; /* Face Vertex UV */
-		if((type / 16) % 2 == 1) size += 1; /* Face normal */
-		if((type / 32) % 2 == 1) size += edgeCount; /* Face vertex normal */
-		if((type / 64) % 2 == 1) size += 1; /* Face color*/
-		if((type / 128) % 2 == 1) size += edgeCount; /* Face vertex color */
+		if ((type / 2) % 2 == 1)
+			size += 1; /* Material */
+		if ((type / 4) % 2 == 1)
+			size += 1; /* Face UV */
+		if ((type / 8) % 2 == 1)
+			size += edgeCount; /* Face Vertex UV */
+		if ((type / 16) % 2 == 1)
+			size += 1; /* Face normal */
+		if ((type / 32) % 2 == 1)
+			size += edgeCount; /* Face vertex normal */
+		if ((type / 64) % 2 == 1)
+			size += 1; /* Face color */
+		if ((type / 128) % 2 == 1)
+			size += edgeCount; /* Face vertex color */
 		return size;
 	}
-	
+
 	public ThreeJSFormat(String filename) {
 		try {
 			BufferedReader r = new BufferedReader(new FileReader(filename));
@@ -58,9 +84,9 @@ public class ThreeJSFormat {
 				case "faces": {
 					String[] readin = spl[1].split(",");
 					int ptr = 0;
-					while(ptr < readin.length){
+					while (ptr < readin.length) {
 						int type = Integer.parseInt(readin[ptr]);
-						if(type % 2 == 0){
+						if (type % 2 == 0) {
 							int a = Integer.parseInt(readin[ptr + 1]);
 							int b = Integer.parseInt(readin[ptr + 2]);
 							int c = Integer.parseInt(readin[ptr + 3]);
@@ -68,17 +94,24 @@ public class ThreeJSFormat {
 							edges.add(new Edge(a, b));
 							edges.add(new Edge(b, c));
 							edges.add(new Edge(c, a));
+							/* Add face */
+							faces.add(new FaceTri(a,b,c, Color.YELLOW));
+							
 							ptr += findSize(type);
-						}else{
+						} else {
 							/* Quad */
 							int a = Integer.parseInt(readin[ptr + 1]);
 							int b = Integer.parseInt(readin[ptr + 2]);
 							int c = Integer.parseInt(readin[ptr + 3]);
 							int d = Integer.parseInt(readin[ptr + 4]);
+							/* Add Edges */
 							edges.add(new Edge(a, b));
 							edges.add(new Edge(b, c));
 							edges.add(new Edge(c, d));
 							edges.add(new Edge(d, a));
+							
+							/* Add face */
+							faces.add(new FaceQuad(a,b,c,d, Color.YELLOW));
 							ptr += findSize(type);
 						}
 					}
@@ -105,7 +138,7 @@ public class ThreeJSFormat {
 			System.out.println("File not Found");
 		} catch (IOException e) {
 			System.out.println("What did you do again!?");
-		} 
+		}
 	}
 
 	/**
@@ -119,4 +152,9 @@ public class ThreeJSFormat {
 				vertices.toArray(new Point3d[vertices.size()]));
 	}
 
+	public Model3d toFaceModel3d() {
+		return new FacesModel(edges.toArray(new Edge[edges.size()]),
+				vertices.toArray(new Point3d[vertices.size()]),
+				faces.toArray(new Face[faces.size()]));
+	}
 }
