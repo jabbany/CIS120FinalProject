@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 import playground.GridFieldItem;
 
-public class FieldData {
+public class FieldData implements RenderableField{
 	/*
 	 * This contains a mapping of the 3d scene.
 	 */
@@ -73,7 +73,7 @@ public class FieldData {
 			}
 	}
 	
-	public void fadeTiles() {
+	public void onRender() {
 		for (int h = 0; h < highlighted.size(); h++) {
 			Color c = highlighted.get(h).getColor();
 			int r = c.getRed(), g = c.getGreen(), b = c.getBlue();
@@ -236,27 +236,16 @@ public class FieldData {
 
 	}
 	
-	/**
-	 * Returns how many native edges in the scene not counting models
-	 * @return
-	 */
-	public int countFieldEdges(){
+
+	public int countEdges(){
 		return edges.size();
 	}
-	
-	/**
-	 * Returns how many native vertices in the scene not counting models
-	 * @return
-	 */
-	public int countFieldVertices(){
+
+	public int countVertices(){
 		return vertices.size();
 	}
 	
-	/**
-	 * Returns how many native faces in the scene not counting models
-	 * @return
-	 */
-	public int countFieldFaces(){
+	public int countFaces(){
 		return faces.size();
 	}
 	

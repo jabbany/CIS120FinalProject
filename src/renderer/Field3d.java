@@ -32,7 +32,7 @@ public class Field3d extends Component implements MouseDragCatcher {
 	/**
 	 * 3D Playing Field
 	 */
-	private FieldData field;
+	private RenderableField field;
 	private Image buffer;
 	private Graphics buffer_context;
 	private Model2d context_2d;
@@ -46,7 +46,7 @@ public class Field3d extends Component implements MouseDragCatcher {
 		return Math.min(Math.max(a, min), max);
 	}
 
-	public Field3d(FieldData f) {
+	public Field3d(RenderableField f) {
 		field = f;
 		mouse_handler = new Field3dMouseHandler(this);
 		addMouseListener(mouse_handler);
@@ -93,15 +93,7 @@ public class Field3d extends Component implements MouseDragCatcher {
 		return elevation;
 	}
 
-	public void setBackground(Color c) {
-		background = c;
-	}
-
-	public Color getBackground() {
-		return background;
-	}
-
-	public FieldData getFieldData() {
+	public RenderableField getField() {
 		return field;
 	}
 
@@ -161,7 +153,7 @@ public class Field3d extends Component implements MouseDragCatcher {
 
 		/** NOTE: Points may be null! **/
 		/** TODO: Add BETTER support for faces **/
-		for (j = 0; j < field.countFieldFaces(); ++j) {
+		for (j = 0; j < field.countFaces(); ++j) {
 			int[] facePoints = faces[j].getPoints();
 			int[] xpoints = new int[facePoints.length];
 			int[] ypoints = new int[facePoints.length];
@@ -177,7 +169,7 @@ public class Field3d extends Component implements MouseDragCatcher {
 			g.fillPolygon(xpoints, ypoints, npoints);
 		}
 
-		for (j = 0; j < field.countFieldEdges(); ++j) {
+		for (j = 0; j < field.countEdges(); ++j) {
 			g.setColor(edges[j].color);
 			if (points[edges[j].start] != null && points[edges[j].end] != null)
 				g.drawLine(points[edges[j].start].x, points[edges[j].start].y,
@@ -185,7 +177,7 @@ public class Field3d extends Component implements MouseDragCatcher {
 		}
 
 		/** Draws the models on top of the field **/
-		for (j = field.countFieldFaces(); j < faces.length; ++j) {
+		for (j = field.countFaces(); j < faces.length; ++j) {
 			int[] facePoints = faces[j].getPoints();
 			int[] xpoints = new int[facePoints.length];
 			int[] ypoints = new int[facePoints.length];
@@ -201,7 +193,7 @@ public class Field3d extends Component implements MouseDragCatcher {
 			g.fillPolygon(xpoints, ypoints, npoints);
 		}
 
-		for (j = field.countFieldEdges(); j < edges.length; ++j) {
+		for (j = field.countEdges(); j < edges.length; ++j) {
 			g.setColor(edges[j].color);
 			if (points[edges[j].start] != null && points[edges[j].end] != null)
 				g.drawLine(points[edges[j].start].x, points[edges[j].start].y,
@@ -214,8 +206,8 @@ public class Field3d extends Component implements MouseDragCatcher {
 	}
 
 	public void redrawBuffer() {
-		field.fadeTiles();
 		drawField(buffer_context);
+		field.onRender();
 	}
 
 	@Override
