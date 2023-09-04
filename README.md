@@ -3,7 +3,7 @@ CIS 120 Final Project
 CIS 120 Final Project - Build A Game. Implementation for 3D Snakes using native
 AWT drawing in Java.
 
-![Demo of Game](http://kanoha.org/wp-content/uploads/2012/12/%E6%97%A0%E6%A0%87%E9%A2%9823.png)
+![Demo of Game](https://github.com/jabbany/CIS120FinalProject/blob/master/snakes_screenshot.png?raw=true)
 
 Buliding and Playing
 ----
